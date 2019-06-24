@@ -1,16 +1,31 @@
-// Creating a map object
-var map = L.map("map", {
-  center: [40.8540, -74.8291],
-  zoom: 3
-});
+// Defining the layers 
 
-// Adding tile layer
 var street = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
   attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
   maxZoom: 18,
   id: "mapbox.streets",
   accessToken: API_KEY
-}).addTo(map);
+});
+
+var dark = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
+  attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
+  maxZoom: 18,
+  id: "mapbox.dark",
+  accessToken: API_KEY
+});
+
+// Only one base layer can be shown at a time
+var baseMaps = {
+  "Light": street,
+  "Dark": dark
+};  
+
+// Construct the map object
+var map = L.map("map", {
+  center: [40.8540, -74.8291],
+  zoom: 3,
+  layers: [street, dark]
+});
 
 
 var url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
@@ -25,6 +40,7 @@ function markerSize(magnitude) {
 return magnitude * 20000;
 }
 
+// Create a new Layer Group
 // var earthquake = new L.LayerGroup();
 
 var geojson;
@@ -75,13 +91,7 @@ for (var i = 0; i<data.length; i++) {
   }).bindPopup("<h1>" + place + "</h1><hr><h3>Magnitude: " + magnitude + "</h3>").addTo(map);
 
   
-
-
-  // Adding legend to the map
-  
 }
-
-
 
 });
 
@@ -113,34 +123,7 @@ legend.onAdd = function() {
 
 legend.addTo(map);
 
-// ~~~~~~~~~~~~~~ CHALLENGE PART - Work in progress ~~~~~~~
-
-// var dark = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
-//   attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
-//   maxZoom: 18,
-//   id: "mapbox.dark",
-//   accessToken: API_KEY
-// });
-
-// // Only one base layer can be shown at a time
-// var baseMaps = {
-//   "Light": light,
-//   "Dark": dark
-// };  
-
-// // Create an overlayMaps object here to contain the "State Population" and "City Population" layers
-// var overlayMaps = {
-//   "Earthquke": earthquake,
-// };
-
-// // Creating a map object
-// var map = L.map("map", {
-//   center: [40.8540, -74.8291],
-//   zoom: 3,
-//   layers: [light, dark]
-// });
-
-// L.control.layers(baseMaps, overlayMaps).addTo(myMap);
+L.control.layers(baseMaps).addTo(map);
 
 
 
