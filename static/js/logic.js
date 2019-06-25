@@ -1,5 +1,4 @@
 // Defining the layers 
-
 var street = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
   attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
   maxZoom: 18,
@@ -14,10 +13,19 @@ var dark = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?acc
   accessToken: API_KEY
 });
 
-// Only one base layer can be shown at a time
+// Satellite base
+var satellite = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
+  attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
+  maxZoom: 18,
+  id: "mapbox.streets-satellite",
+  accessToken: API_KEY
+});
+
+// Defining baseLayers (only one will be shown at a time)
 var baseMaps = {
   "Light": street,
-  "Dark": dark
+  "Dark": dark,
+  "Satellite": satellite
 };  
 
 // Construct the map object
@@ -28,7 +36,7 @@ var map = L.map("map", {
 });
 
 
-var url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
+var urlEarth = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
 
 // Fucntion build a popup
 // function buildPopup(feature) {
@@ -43,10 +51,14 @@ return magnitude * 20000;
 // Create a new Layer Group
 // var earthquake = new L.LayerGroup();
 
+// Create a variable geojson 
 var geojson;
 
-// Grab the data 
-d3.json(url, function(response) {
+// Defining a new layer 
+var earthLayer = new L.LayerGroup();
+
+// Grab the data for earthquakes 
+d3.json(urlEarth, function(response) {
 // console.log(response);
 
 // Store response features in a variable so it's easier to loop through coordinates
@@ -89,8 +101,6 @@ for (var i = 0; i<data.length; i++) {
     fillColor: magColor,
     radius: markerSize(magnitude)
   }).bindPopup("<h1>" + place + "</h1><hr><h3>Magnitude: " + magnitude + "</h3>").addTo(map);
-
-  
 }
 
 });
@@ -123,7 +133,31 @@ legend.onAdd = function() {
 
 legend.addTo(map);
 
-L.control.layers(baseMaps).addTo(map);
+// url for boundaries
+var urlBound = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json";
+
+// Defining a new Layer
+var boundLayer = new L.LayerGroup();
+
+// Gettig the data with d3 and plotting with geoJSON
+d3.json(urlBound, function (geoJson) {
+  L.geoJSON(geoJson.features, {
+    style: function (geoJsonFeature) {
+      return {
+        weight: 1,
+        color: "red"
+      }
+    },
+  }).addTo(boundLayer);
+})
+// Defining the overlay maps
+
+var overlayMaps = {
+  "Fault Line": boundLayer,
+  "Earthquake": earthLayer
+}
+
+L.control.layers(baseMaps, overlayMaps).addTo(map);
 
 
 
